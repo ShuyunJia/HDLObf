@@ -25,8 +25,9 @@
 
 import java.io.*;
 import java.util.*;
+import py4j.GatewayServer;
 
-class Obfuscate
+public class Obfuscate
 {
    public   boolean      DebugTrue; 
    public   HashMap<String,String>  obfHMap;   
@@ -47,10 +48,12 @@ class Obfuscate
      String       outFile  = "";
      Obfuscate    obf      = new Obfuscate();
      obf.DebugTrue         = true;
+     GatewayServer server = new GatewayServer(obf);
+     server.start();
+     /*
      try{
-
        // actual  option
-       if(args.length > 3)
+       if(args.length == 5)
        {
          lanOpt  = args[0];
          mapFileIn = args[1];
@@ -58,6 +61,7 @@ class Obfuscate
          inFile  = args[3];
          outFile = args[4];
        }
+       System.out.println("yohoo, lanOpt=" + lanOpt);
        obf.processFile(lanOpt, mapFileIn, mapFileOut, inFile, outFile);
 
      }catch (Exception e)
@@ -66,6 +70,7 @@ class Obfuscate
          System.out.println("Main Error: " + e.getMessage());
          e.printStackTrace();
      }
+     */
    }
 
    public void processFile(String lanOpt, String mapFileIn, String mapFileOut, String inFile, String outFile)
@@ -91,7 +96,8 @@ class Obfuscate
 public void VeriObfuscate(String mapFileIn, String mapFileOut, String inFile, String outFile) 
    {
      
-      FileOutputStream           optfs;
+      //FileOutputStream           optfs;
+      DataOutputStream           optfs;
       File                       optfile;
       org.antlr.v4.runtime.CharStream  dis;
       Verilog2001Lexer   lexer;
@@ -113,7 +119,7 @@ public void VeriObfuscate(String mapFileIn, String mapFileOut, String inFile, St
             }
         }
 		 obfHMap = map;
-         dom                     = new DataOutputStream(new FileOutputStream(mapFileOut,true));
+         dom                     = new DataOutputStream(new FileOutputStream(mapFileOut));
          dom.writeBytes("\n//Appended due to input file:\t" + inFile + "\n");
 
          // Input Verilog Lexer         
@@ -122,6 +128,8 @@ public void VeriObfuscate(String mapFileIn, String mapFileOut, String inFile, St
       
          // Output Verilog File
          optfile     = new File(outFile);
+         optfs     = new DataOutputStream(new FileOutputStream(outFile));
+        /*
          if(optfile.createNewFile())
          {           
            optfs     = new FileOutputStream(optfile);
@@ -131,10 +139,12 @@ public void VeriObfuscate(String mapFileIn, String mapFileOut, String inFile, St
            System.out.println("Could not create output file: "+ outFile + "\n");
            return;
          }
+         */
          
          org.antlr.v4.runtime.Token t = lexer.nextToken();
          do {
             outputString = t.getText();
+            System.out.println(outputString);
             if( t.getType() == Verilog2001Lexer.Simple_identifier ||
 				t.getType() == Verilog2001Lexer.Escaped_identifier )
             {
@@ -174,7 +184,8 @@ public void VeriObfuscate(String mapFileIn, String mapFileOut, String inFile, St
             }
             
             // write to output file
-            optfs.write(outputString.getBytes());
+            //optfs.write(outputString.getBytes());
+            optfs.writeBytes(outputString);
 
             t = lexer.nextToken();
          }while(t.getType() != org.antlr.v4.runtime.Token.EOF);          
